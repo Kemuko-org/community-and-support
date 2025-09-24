@@ -16,9 +16,12 @@ const (
 )
 
 type UserContext struct {
-	UserID string `json:"userId"`
-	Role   string `json:"role"`
-	Email  string `json:"email"`
+	UserID   string `json:"userId"`
+	Role     string `json:"role"`
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	FullName string `json:"fullName"`
+	UserType string `json:"userType"`
 }
 
 type JWTMiddleware struct {
@@ -45,6 +48,12 @@ func (m *JWTMiddleware) ValidateToken(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
+		// Set headers for handlers to use
+		r.Header.Set("X-User-ID", userCtx.UserID)
+		r.Header.Set("X-User-Email", userCtx.Email)
+		r.Header.Set("X-User-Role", userCtx.Role)
+		r.Header.Set("X-User-Name", userCtx.Name)
+
 		ctx := context.WithValue(r.Context(), UserContextKey, userCtx)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
@@ -55,6 +64,12 @@ func (m *JWTMiddleware) OptionalAuth(next http.HandlerFunc) http.HandlerFunc {
 		tokenString := extractTokenFromHeader(r)
 		if tokenString != "" {
 			if userCtx, err := m.parseToken(tokenString); err == nil {
+				// Set headers for handlers to use
+				r.Header.Set("X-User-ID", userCtx.UserID)
+				r.Header.Set("X-User-Email", userCtx.Email)
+				r.Header.Set("X-User-Role", userCtx.Role)
+				r.Header.Set("X-User-Name", userCtx.Name)
+
 				ctx := context.WithValue(r.Context(), UserContextKey, userCtx)
 				r = r.WithContext(ctx)
 			}
@@ -86,18 +101,47 @@ func (m *JWTMiddleware) parseToken(tokenString string) (*UserContext, error) {
 
 	userCtx := &UserContext{}
 	
-	if userID, ok := claims["userId"].(string); ok {
-		userCtx.UserID = userID
-	} else if sub, ok := claims["sub"].(string); ok {
-		userCtx.UserID = sub
-	}
-	
-	if role, ok := claims["role"].(string); ok {
-		userCtx.Role = role
-	}
-	
-	if email, ok := claims["email"].(string); ok {
-		userCtx.Email = email
+	// Extract user data from nested "user" object in JWT
+	if userObj, ok := claims["user"].(map[string]interface{}); ok {
+		if userID, ok := userObj["id"].(string); ok {
+			userCtx.UserID = userID
+		}
+		if email, ok := userObj["email"].(string); ok {
+			userCtx.Email = email
+		}
+		if name, ok := userObj["name"].(string); ok {
+			userCtx.Name = name
+		}
+		if fullName, ok := userObj["fullName"].(string); ok {
+			userCtx.FullName = fullName
+		}
+		if userType, ok := userObj["userType"].(string); ok {
+			userCtx.UserType = userType
+			// Map userType to role for backwards compatibility
+			switch userType {
+			case "admin":
+				userCtx.Role = "admin"
+			case "instructor":
+				userCtx.Role = "instructor"
+			default:
+				userCtx.Role = "student"
+			}
+		}
+	} else {
+		// Fallback: try to extract from top-level claims
+		if userID, ok := claims["userId"].(string); ok {
+			userCtx.UserID = userID
+		} else if sub, ok := claims["sub"].(string); ok {
+			userCtx.UserID = sub
+		}
+		
+		if role, ok := claims["role"].(string); ok {
+			userCtx.Role = role
+		}
+		
+		if email, ok := claims["email"].(string); ok {
+			userCtx.Email = email
+		}
 	}
 
 	if userCtx.UserID == "" {

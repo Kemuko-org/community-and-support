@@ -1,0 +1,473 @@
+basePath: /api/v1
+host: localhost:8080
+info:
+  contact:
+    email: support@kemuko.com
+    name: Kemuko Support Team
+  description: EdTech support and ticketing system API for Kemuko educational platform
+  license:
+    name: MIT
+  title: Kemuko Support Service API
+  version: 1.0.0
+paths:
+  /health:
+    get:
+      description: Returns the health status of the service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check
+      tags:
+      - health
+  /instructor/tickets:
+    get:
+      description: Retrieve tickets assigned to the authenticated instructor
+      parameters:
+      - description: Filter by ticket status
+        enum:
+        - open
+        - in_progress
+        - resolved
+        - closed
+        in: query
+        name: status
+        type: string
+      - description: Filter by ticket priority
+        enum:
+        - low
+        - medium
+        - high
+        - urgent
+        in: query
+        name: priority
+        type: string
+      - description: Filter by course ID
+        in: query
+        name: courseId
+        type: string
+      - default: 1
+        description: Page number for pagination
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get instructor's assigned tickets
+      tags:
+      - instructor
+  /instructor/tickets/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update ticket status, priority, or assignment
+      parameters:
+      - description: Ticket ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update ticket
+      tags:
+      - instructor
+  /instructor/tickets/{id}/assign:
+    post:
+      consumes:
+      - application/json
+      description: Assign a ticket to a specific instructor
+      parameters:
+      - description: Ticket ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Assign ticket to instructor
+      tags:
+      - instructor
+  /public/categories:
+    get:
+      description: Retrieve all active support categories without authentication
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all active categories
+      tags:
+      - public
+  /slack/reply:
+    post:
+      consumes:
+      - application/json
+      description: Add a reply to a ticket from Slack interface
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Reply to ticket via Slack
+      tags:
+      - slack
+  /slack/webhook:
+    post:
+      consumes:
+      - application/json
+      description: Webhook endpoint for Slack bot interactions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Slack webhook endpoint
+      tags:
+      - slack
+  /tickets:
+    get:
+      description: Retrieve all tickets created by the authenticated student
+      parameters:
+      - description: Filter by ticket status
+        enum:
+        - open
+        - in_progress
+        - resolved
+        - closed
+        in: query
+        name: status
+        type: string
+      - description: Filter by ticket priority
+        enum:
+        - low
+        - medium
+        - high
+        - urgent
+        in: query
+        name: priority
+        type: string
+      - description: Filter by ticket type
+        enum:
+        - general
+        - technical
+        - course
+        - assignment
+        - grading
+        - platform
+        - content
+        in: query
+        name: type
+        type: string
+      - description: Search in title and description
+        in: query
+        name: search
+        type: string
+      - default: 1
+        description: Page number for pagination
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get student's tickets
+      tags:
+      - tickets
+    post:
+      consumes:
+      - application/json
+      description: Create a new support ticket
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create new ticket
+      tags:
+      - tickets
+  /tickets/{id}:
+    get:
+      description: Retrieve a specific ticket by its ID
+      parameters:
+      - description: Ticket ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get ticket by ID
+      tags:
+      - tickets
+  /tickets/{id}/comments:
+    get:
+      description: Retrieve all comments for a specific ticket
+      parameters:
+      - description: Ticket ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get ticket comments
+      tags:
+      - comments
+    post:
+      consumes:
+      - application/json
+      description: Add a new comment to a specific ticket
+      parameters:
+      - description: Ticket ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add comment to ticket
+      tags:
+      - comments
+securityDefinitions:
+  BearerAuth:
+    description: 'JWT Bearer token. Format: Bearer {token}'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
