@@ -40,3 +40,4 @@ Thumbs.db
 
 # Claude AI context (development only)
 .claude/
+DEVELOPMENT_GUIDE.md
