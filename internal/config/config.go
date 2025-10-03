@@ -4,13 +4,16 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type Config struct {
-	Server   ServerConfig
-	Database DatabaseConfig
-	Auth     AuthConfig
-	Upload   UploadConfig
+	Server        ServerConfig
+	Database      DatabaseConfig
+	Auth          AuthConfig
+	Upload        UploadConfig
+	Notifications NotificationConfig
+	Frontend      FrontendConfig
 }
 
 type ServerConfig struct {
@@ -39,6 +42,20 @@ type UploadConfig struct {
 	AllowedTypes []string
 }
 
+type NotificationConfig struct {
+	EmailServiceURL   string
+	EmailServiceToken string
+	SlackServiceURL   string
+	SlackServiceToken string
+	AdminEmails       []string
+	AdminEmail        string
+	SlackChannel      string
+}
+
+type FrontendConfig struct {
+	BaseURL string
+}
+
 func Load() (*Config, error) {
 	config := &Config{
 		Server: ServerConfig{
@@ -56,6 +73,18 @@ func Load() (*Config, error) {
 		},
 		Auth: AuthConfig{
 			JWTSecret: getEnv("JWT_SECRET", "your-secret-key"),
+		},
+		Notifications: NotificationConfig{
+			EmailServiceURL:   getEnv("EMAIL_SERVICE_URL", "http://localhost:8081"),
+			EmailServiceToken: getEnv("EMAIL_SERVICE_TOKEN", ""),
+			SlackServiceURL:   getEnv("SLACK_SERVICE_URL", "http://localhost:8082"),
+			SlackServiceToken: getEnv("SLACK_SERVICE_TOKEN", ""),
+			AdminEmails:       getEnvAsStringSlice("ADMIN_EMAILS", []string{"admin@kemuko.com"}),
+			AdminEmail:        getEnv("ADMIN_EMAIL", "support@kemuko.com"),
+			SlackChannel:      getEnv("SLACK_CHANNEL", "#kemuko-support"),
+		},
+		Frontend: FrontendConfig{
+			BaseURL: getEnv("FRONTEND_BASE_URL", "https://kemuko.com"),
 		},
 		Upload: UploadConfig{
 			MaxFileSize: getEnvAsInt64("MAX_FILE_SIZE", 10*1024*1024), // 10MB
@@ -102,6 +131,22 @@ func getEnvAsInt64(key string, defaultValue int64) int64 {
 	if value := os.Getenv(key); value != "" {
 		if intValue, err := strconv.ParseInt(value, 10, 64); err == nil {
 			return intValue
+		}
+	}
+	return defaultValue
+}
+
+func getEnvAsStringSlice(key string, defaultValue []string) []string {
+	if value := os.Getenv(key); value != "" {
+		// Split by comma and trim spaces
+		parts := []string{}
+		for _, part := range strings.Split(value, ",") {
+			if trimmed := strings.TrimSpace(part); trimmed != "" {
+				parts = append(parts, trimmed)
+			}
+		}
+		if len(parts) > 0 {
+			return parts
 		}
 	}
 	return defaultValue

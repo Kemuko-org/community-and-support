@@ -1,17 +1,19 @@
-# EdTech Support Service
+# Kemuko Support Service
 
-A Go-based microservice for educational technology support and ticketing system with PostgreSQL database.
+A Go-based microservice for Kemuko's educational technology support and ticketing system with PostgreSQL database.
 
 ## Features
 
-- Student support ticket system with EdTech-specific categories
+- Kemuko student support ticket system with EdTech-specific categories
 - Course-related ticket tracking with course ID integration
-- Student/Instructor role-based access control
+- Student/Instructor role-based access control for Kemuko platform
 - Comment system for student-instructor communication
 - File attachment support via URLs (separate file service)
 - Ticket history and audit trail
 - JSONB metadata for flexible educational data storage
 - JWT authentication with user context extraction
+- Email and Slack notifications for Kemuko admins
+- Slack bot integration for admin replies
 - RESTful API with proper authentication middleware
 
 ## Project Structure
@@ -75,12 +77,12 @@ All tables use camelCase column naming and include JSONB metadata fields for edu
 ## API Endpoints
 
 ### Public Endpoints
-- `GET /health` - Health check
-- `GET /api/v1/public/categories` - List support categories
+- `GET /health` - Health check for Kemuko support service
+- `GET /api/v1/public/categories` - List Kemuko support categories
 
 ### Student Endpoints (JWT Required)
 - `GET /api/v1/tickets` - List student's tickets
-- `POST /api/v1/tickets` - Create new support ticket
+- `POST /api/v1/tickets` - Create new support ticket (triggers Kemuko admin notifications)
 - `GET /api/v1/tickets/{id}` - Get ticket details
 - `POST /api/v1/tickets/{id}/comments` - Add comment to ticket
 
@@ -88,6 +90,10 @@ All tables use camelCase column naming and include JSONB metadata fields for edu
 - `GET /api/v1/instructor/tickets` - List all tickets for instructor
 - `PUT /api/v1/instructor/tickets/{id}` - Update ticket status/assignment
 - `POST /api/v1/instructor/tickets/{id}/internal-notes` - Add internal notes
+
+### Slack Integration Endpoints
+- `POST /api/v1/slack/reply` - Admin reply via Slack (triggers email to student)
+- `POST /api/v1/slack/webhook` - Slack bot webhook for interactive components
 
 ## Environment Variables
 
